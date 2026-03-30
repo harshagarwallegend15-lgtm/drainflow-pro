@@ -1,0 +1,559 @@
+/* ============ CAD TOOL STYLES ============ */
+
+/* Layout */
+.cad-layout {
+    display: grid;
+    grid-template-columns: 64px 1fr 280px;
+    grid-template-rows: 52px 1fr 32px;
+    height: calc(100vh - var(--nav-height));
+}
+
+.cad-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(10, 14, 26, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cad-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cad-title-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(0, 245, 212, 0.08);
+    border: 1px solid rgba(0, 245, 212, 0.2);
+    border-radius: 100px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.cad-title-badge svg { color: var(--accent-primary); }
+
+.cad-status {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.cad-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cad-tool-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cad-header-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.cad-header-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.cad-header-btn.accent {
+    background: rgba(0, 245, 212, 0.08);
+    border-color: rgba(0, 245, 212, 0.2);
+    color: var(--accent-primary);
+}
+
+.cad-header-btn.accent:hover {
+    background: rgba(0, 245, 212, 0.15);
+}
+
+.cad-header-btn.primary {
+    background: linear-gradient(135deg, var(--accent-primary), #00d4aa);
+    border: none;
+    color: #0a0e1a;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(0, 245, 212, 0.25);
+}
+
+.cad-header-btn.primary:hover {
+    box-shadow: 0 4px 20px rgba(0, 245, 212, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Sidebar */
+.cad-sidebar {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    background: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-y: auto;
+    gap: 2px;
+}
+
+.tool-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 0;
+}
+
+.tool-section-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.tool-divider {
+    width: 36px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 4px 0;
+}
+
+.cad-tool-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.cad-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.cad-tool-btn.active {
+    background: rgba(0, 245, 212, 0.12);
+    color: var(--accent-primary);
+    box-shadow: 0 0 16px rgba(0, 245, 212, 0.15);
+    border: 1px solid rgba(0, 245, 212, 0.25);
+}
+
+.cad-tool-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: var(--accent-primary);
+    border-radius: 0 2px 2px 0;
+}
+
+/* Canvas Wrapper */
+.cad-canvas-wrapper {
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+    overflow: hidden;
+    background: 
+        linear-gradient(rgba(0, 245, 212, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 245, 212, 0.015) 1px, transparent 1px);
+    background-size: 20px 20px;
+    cursor: crosshair;
+}
+
+#cadCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Status Bar & HUD */
+.cad-hud {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(10, 14, 26, 0.8);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 245, 212, 0.3);
+    border-radius: var(--radius-sm);
+    pointer-events: none;
+    z-index: 100;
+}
+
+.hud-val {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.hud-val span {
+    color: var(--accent-primary);
+    font-weight: bold;
+}
+
+.cad-status-bar {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10, 14, 26, 0.9);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0 16px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.status-left, .status-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cad-coords {
+    color: var(--accent-primary);
+}
+
+.status-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+}
+
+.status-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.status-btn.active {
+    background: rgba(0, 245, 212, 0.1);
+    color: var(--accent-primary);
+    box-shadow: inset 0 0 0 1px rgba(0, 245, 212, 0.2);
+}
+
+.cad-header-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+}
+
+/* Properties Panel */
+.cad-properties {
+    grid-column: 3;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    background: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-y: auto;
+}
+
+.properties-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.properties-header h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.prop-toggle {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: none;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.prop-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.properties-body {
+    flex: 1;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.prop-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.prop-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.prop-value {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.prop-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.prop-row label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    min-width: 32px;
+}
+
+.prop-input {
+    flex: 1;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    outline: none;
+    transition: var(--transition-fast);
+}
+
+.prop-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.08);
+}
+
+.prop-input:disabled {
+    opacity: 0.5;
+}
+
+.prop-color {
+    width: 32px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    background: none;
+    padding: 2px;
+}
+
+.prop-select {
+    flex: 1;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.prop-select option { background: var(--bg-secondary); }
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    margin-left: auto;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    transition: var(--transition-fast);
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    border-radius: 50%;
+    transition: var(--transition-fast);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: rgba(0, 245, 212, 0.3);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+    background-color: var(--accent-primary);
+}
+
+/* Layers */
+.layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.layer-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.layer-item.active {
+    background: rgba(0, 245, 212, 0.06);
+    color: var(--text-primary);
+}
+
+.layer-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.layer-item span:nth-child(2) {
+    flex: 1;
+}
+
+.layer-toggle {
+    font-size: 0.7rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.6;
+    transition: var(--transition-fast);
+}
+
+.layer-toggle.on { opacity: 1; }
+.layer-toggle:hover { opacity: 0.8; }
+
+/* Legend */
+.cad-legend {
+    padding: 14px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: auto;
+}
+
+.cad-legend h4 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-primary);
+    margin-bottom: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    padding: 3px 0;
+}
+
+.legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+/* ============ CAD RESPONSIVE ============ */
+@media (max-width: 1100px) {
+    .cad-layout {
+        grid-template-columns: 56px 1fr 240px;
+    }
+}
+
+@media (max-width: 800px) {
+    .cad-layout {
+        grid-template-columns: 56px 1fr;
+    }
+    .cad-properties { display: none; }
+    .cad-header-right { flex-wrap: wrap; }
+}

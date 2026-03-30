@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Based Road Drainage Design and Capacity Analysis System - Professional-grade hydraulic analysis, terrain mapping, and drainage system design platform">
+    <title>AI-Based Road Drainage Design and Capacity Analysis System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Three.js and OrbitControls UMD -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Chart.js for Advanced Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client for Authentication Core -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="cad-styles.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-ambient">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+        <div class="bg-orb bg-orb-4"></div>
+        <canvas id="particleCanvas"></canvas>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand" onclick="navigateTo('home')">
+            <div class="brand-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C14 2 6 10 6 16a8 8 0 1016 0C22 10 14 2 14 2z" fill="url(#dropGrad)" stroke="rgba(0,245,212,0.6)" stroke-width="1.5"/>
+                    <path d="M14 8c0 0-4 4.5-4 7.5a4 4 0 108 0C18 12.5 14 8 14 8z" fill="url(#dropInner)" opacity="0.7"/>
+                    <defs>
+                        <linearGradient id="dropGrad" x1="6" y1="2" x2="22" y2="24">
+                            <stop offset="0%" stop-color="#00f5d4"/>
+                            <stop offset="100%" stop-color="#7b61ff"/>
+                        </linearGradient>
+                        <linearGradient id="dropInner" x1="10" y1="8" x2="18" y2="20">
+                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/>
+                            <stop offset="100%" stop-color="#00f5d4" stop-opacity="0.2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="brand-text" style="font-size: 14px; white-space: normal; line-height: 1.2;">AI-Based Road Drainage Design<br><span class="brand-accent">and Capacity Analysis System</span></span>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <a class="nav-link active" data-page="home" onclick="navigateTo('home')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                Home
+            </a>
+            <a class="nav-link" data-page="map" onclick="navigateTo('map')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/></svg>
+                Map Designer
+            </a>
+            <a class="nav-link" data-page="calculator" onclick="navigateTo('calculator')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+                Calculator
+            </a>
+            <a class="nav-link" data-page="viewer3d" onclick="navigateTo('viewer3d')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                3D Viewer
+            </a>
+            <a class="nav-link" data-page="cad" onclick="navigateTo('cad')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                CAD Tool
+            </a>
+            <a class="nav-link" data-page="results" onclick="navigateTo('results')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                Results
+            </a>
+            <a class="nav-link ai-nav-link" data-page="ai" onclick="navigateTo('ai')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                AI Recommendation
+            </a>
+            <a class="nav-link" data-page="tech" onclick="navigateTo('tech')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Technologies
+            </a>
+            <a class="nav-link" data-page="signin" onclick="navigateTo('signin')" id="navUserBadge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Sign In
+            </a>
+        </div>
+        <button class="nav-toggle" id="navToggle" onclick="toggleNav()">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Pages Container -->
+    <main id="app">
+        <!-- HOME PAGE -->
+        <section class="page active" id="page-home">
+            <div class="hero">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="badge-dot"></span>
+                        Professional Drainage Design Platform
+                    </div>
+                    <h1 class="hero-title" style="font-size: 3.5rem; line-height: 1.2;">
+                        AI-Based <span class="gradient-text">Road Drainage Design</span><br>and Capacity Analysis System
+                    </h1>
+                    <p class="hero-subtitle">Professional-grade hydraulic analysis, terrain mapping, and drainage system design — all in one powerful platform.</p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-glow" onclick="navigateTo('cad')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                            Start Designing
+                        </button>
+                        <button class="btn btn-glass" onclick="navigateTo('calculator')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>
+                            Open Calculator
+                        </button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" data-count="1200">0</span>
+                            <span class="stat-label">Projects Designed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" data-count="98">0</span><span class="stat-suffix">%</span>
+                            <span class="stat-label">Accuracy Rate</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" data-count="50">0</span><span class="stat-suffix">+</span>
+                            <span class="stat-label">CAD Tools</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="iso-scene">
+                        <div class="iso-platform">
+                            <div class="iso-glow"></div>
+                            <canvas id="heroCanvas" width="400" height="350"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <div class="section-header">
+                    <span class="section-tag">Features</span>
+                    <h2 class="section-title">Everything You Need for <span class="gradient-text">Drainage Design</span></h2>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card glass-card" data-delay="0">
+                        <div class="feature-icon icon-blue">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+                        </div>
+                        <h3>Hydraulic Analysis</h3>
+                        <p>Manning's equation-based flow calculations with automatic pipe sizing and velocity optimization.</p>
+                    </div>
+                    <div class="feature-card glass-card" data-delay="100">
+                        <div class="feature-icon icon-green">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <h3>Terrain Detection</h3>
+                        <p>Interactive map-based terrain analysis with elevation, soil type, and rainfall data detection.</p>
+                    </div>
+                    <div class="feature-card glass-card" data-delay="200">
+                        <div class="feature-icon icon-purple">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        </div>
+                        <h3>3D Visualization</h3>
+                        <p>Real-time 3D rendering of drainage networks with depth analysis and cross-sectional views.</p>
+                    </div>
+                    <div class="feature-card glass-card" data-delay="300">
+                        <div class="feature-icon icon-cyan">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33"/></svg>
+                        </div>
+                        <h3>Advanced CAD Tools</h3>
+                        <p>50+ professional drawing tools with layers, snapping, dimensions, and DXF export capabilities.</p>
+                    </div>
+                    <div class="feature-card glass-card" data-delay="400">
+                        <div class="feature-icon icon-orange">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                        </div>
+                        <h3>Data Visualization</h3>
+                        <p>Professional charts and graphs for flow rates, velocities, and discharge analysis.</p>
+                    </div>
+                    <div class="feature-card glass-card" data-delay="500">
+                        <div class="feature-icon icon-pink">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        </div>
+                        <h3>Export & Reports</h3>
+                        <p>Export designs as DXF, PDF reports with detailed calculations and material lists.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAP DESIGNER PAGE -->
+        <section class="page" id="page-map">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/></svg>
+                    <div>
+                        <h1>Map Designer</h1>
+                        <p>Click on the world map to detect terrain data, soil type, and rainfall information for your project site.</p>
+                    </div>
+                </div>
+                <div class="map-toolbar">
+                    <button class="map-tool-btn active" onclick="setMapLayer('street')" title="Street View">🗺️ Street</button>
+                    <button class="map-tool-btn" onclick="setMapLayer('satellite')" title="Satellite View">🛰️ Satellite</button>
+                    <button class="map-tool-btn" onclick="setMapLayer('terrain')" title="Terrain View">⛰️ Terrain</button>
+                    <button class="map-tool-btn" onclick="setMapLayer('dark')" title="Dark Mode">🌙 Dark</button>
+                </div>
+            </div>
+            <div class="map-layout">
+                <div class="glass-card map-container" id="mapContainer">
+                    <div id="leafletMap" style="width:100%;height:100%;border-radius:var(--radius-lg);"></div>
+                </div>
+                <div class="map-sidebar">
+                    <div class="glass-card data-card">
+                        <h3><span class="data-dot dot-green"></span>Location Data</h3>
+                        <div class="data-row"><span class="data-label">Latitude</span><span class="data-value" id="mapLat">—</span></div>
+                        <div class="data-row"><span class="data-label">Longitude</span><span class="data-value" id="mapLng">—</span></div>
+                        <div class="data-row"><span class="data-label">Address</span><span class="data-value" id="mapAddr">—</span></div>
+                    </div>
+                    <div class="glass-card data-card">
+                        <h3><span class="data-dot dot-blue"></span>Terrain Info</h3>
+                        <div class="data-row"><span class="data-label">Elevation</span><span class="data-value" id="mapElev">—</span></div>
+                        <div class="data-row"><span class="data-label">Slope</span><span class="data-value" id="mapSlope">—</span></div>
+                        <div class="data-row"><span class="data-label">Soil Type</span><span class="data-value" id="mapSoil">—</span></div>
+                        <div class="data-row"><span class="data-label">Rainfall</span><span class="data-value" id="mapRain">—</span></div>
+                    </div>
+                    <div class="glass-card data-card">
+                        <h3><span class="data-dot" style="background:#ec4899"></span>Climate Data</h3>
+                        <div class="data-row"><span class="data-label">Temperature</span><span class="data-value" id="mapTemp">—</span></div>
+                        <div class="data-row"><span class="data-label">Humidity</span><span class="data-value" id="mapHumidity">—</span></div>
+                        <div class="data-row"><span class="data-label">Wind Speed</span><span class="data-value" id="mapWind">—</span></div>
+                    </div>
+                    <div class="glass-card data-card">
+                        <h3><span class="data-dot" style="background:#f59e0b"></span>Elevation Profile</h3>
+                        <canvas id="elevProfileMini" style="width:100%;height:80px;"></canvas>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="applyMapData()" style="margin-bottom:12px;">
+                        Apply to Calculator →
+                    </button>
+                    <button class="btn btn-glass btn-full" onclick="saveProjectPrompt('map')" id="btnSaveMap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        Save Map to Cloud
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CALCULATOR PAGE -->
+        <section class="page" id="page-calculator">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>
+                    <div>
+                        <h1>Hydraulic Calculator</h1>
+                        <p>Enter drainage parameters to compute flow rates, pipe sizing, and more.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="calc-layout">
+                <div class="glass-card calc-inputs">
+                    <h3>Input Parameters</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="calcSlope">Slope (%)</label>
+                            <input type="number" id="calcSlope" value="2" step="0.1" class="input-field">
+                        </div>
+                        <div class="input-group">
+                            <label for="calcRainfall">Rainfall (mm/yr)</label>
+                            <input type="number" id="calcRainfall" value="1200" class="input-field">
+                        </div>
+                        <div class="input-group">
+                            <label for="calcArea">Catchment Area (m²)</label>
+                            <input type="number" id="calcArea" value="5000" class="input-field">
+                        </div>
+                        <div class="input-group">
+                            <label for="calcManning">Manning's n</label>
+                            <input type="number" id="calcManning" value="0.013" step="0.001" class="input-field">
+                        </div>
+                        <div class="input-group input-full">
+                            <label for="calcSoil">Soil Type</label>
+                            <select id="calcSoil" class="input-field">
+                                <option value="clay">Clay</option>
+                                <option value="loam" selected>Loam</option>
+                                <option value="sand">Sand</option>
+                                <option value="gravel">Gravel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="calculateHydraulics()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>
+                        Calculate
+                    </button>
+                </div>
+                <div class="glass-card calc-results">
+                    <h3>Results</h3>
+                    <div id="calcResultsContent">
+                        <p class="placeholder-text">Enter parameters and click Calculate to see results.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3D VIEWER PAGE -->
+        <section class="page" id="page-viewer3d">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    <div>
+                        <h1>3D Viewer</h1>
+                        <p>Visualize your drainage network in an interactive 3D environment with advanced rendering.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="viewer3d-layout">
+                <div class="glass-card viewer3d-container">
+                    <canvas id="viewer3dCanvas"></canvas>
+                    <div class="viewer3d-controls">
+                        <button class="viewer-btn" title="Reset View" onclick="reset3DView()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                        </button>
+                        <div class="viewer-divider"></div>
+                        <button class="viewer-btn" title="Top View" onclick="set3DPreset('top')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
+                        </button>
+                        <button class="viewer-btn" title="Front View" onclick="set3DPreset('front')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+                        </button>
+                        <button class="viewer-btn" title="Isometric" onclick="set3DPreset('iso')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                        </button>
+                        <div class="viewer-divider"></div>
+                        <button class="viewer-btn" title="Zoom In" onclick="zoom3D(1)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                        </button>
+                        <button class="viewer-btn" title="Zoom Out" onclick="zoom3D(-1)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                        </button>
+                        <div class="viewer-divider"></div>
+                        <button class="viewer-btn" id="btn3dWireframe" title="Toggle Wireframe" onclick="toggle3DWireframe()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                        </button>
+                        <button class="viewer-btn" id="btn3dRotate" title="Auto Rotate" onclick="toggle3DAutoRotate()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/><polyline points="21 3 21 9 15 9"/></svg>
+                        </button>
+                        <button class="viewer-btn" id="btn3dLabels" title="Toggle Labels" onclick="toggle3DLabels()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                        </button>
+                    </div>
+                    <div class="viewer3d-info glass-card">
+                        <p>Drag to rotate • Scroll to zoom • Elements: <span id="viewer3dCount">0</span></p>
+                    </div>
+                </div>
+                <div class="viewer3d-sidebar">
+                    <div class="glass-card v3d-panel">
+                        <h4>Render Settings</h4>
+                        <div class="prop-row"><label>Shadows</label>
+                            <label class="toggle-switch"><input type="checkbox" id="v3dShadows" checked onchange="toggle3DShadows()"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="prop-row"><label>Ground</label>
+                            <label class="toggle-switch"><input type="checkbox" id="v3dGround" checked onchange="toggle3DGround()"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="prop-row"><label>Axes</label>
+                            <label class="toggle-switch"><input type="checkbox" id="v3dAxes" checked onchange="toggle3DAxes()"><span class="toggle-slider"></span></label>
+                        </div>
+                    </div>
+                    <div class="glass-card v3d-panel">
+                        <h4>Network Stats</h4>
+                        <div class="data-row"><span class="data-label">Total Pipes</span><span class="data-value" id="v3dPipes">0</span></div>
+                        <div class="data-row"><span class="data-label">Total Nodes</span><span class="data-value" id="v3dNodes">0</span></div>
+                        <div class="data-row"><span class="data-label">Total Length</span><span class="data-value" id="v3dLength">0 m</span></div>
+                        <div class="data-row"><span class="data-label">Depth Range</span><span class="data-value" id="v3dDepth">0 m</span></div>
+                    </div>
+                    <div class="glass-card v3d-panel">
+                        <h4>Cross-Section Profile</h4>
+                        <canvas id="crossSectionCanvas" style="width:100%;height:120px;"></canvas>
+                    </div>
+                    <div class="glass-card v3d-panel">
+                        <h4>Elevation Profile</h4>
+                        <canvas id="elevationProfileCanvas" style="width:100%;height:120px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAD TOOL PAGE -->
+        <section class="page" id="page-cad">
+            <div class="cad-layout">
+                <!-- CAD Header -->
+                <div class="cad-header">
+                    <div class="cad-header-left">
+                        <div class="cad-title-badge">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33"/></svg>
+                            <span>CAD Designer</span>
+                        </div>
+                        <span class="cad-status"><span id="cadElementCount">0</span> elements · <span id="cadZoomLevel">100</span>% zoom</span>
+                    </div>
+                    <div class="cad-header-right">
+                        <div class="cad-tool-group">
+                            <button class="cad-header-btn" onclick="cadUndo()" title="Undo (Ctrl+Z)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1014.85-3.36L23 6"/></svg>
+                                Undo
+                            </button>
+                            <button class="cad-header-btn" onclick="cadRedo()" title="Redo (Ctrl+Y)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-14.85-3.36L1 6"/></svg>
+                                Redo
+                            </button>
+                        </div>
+                        <div class="cad-tool-group">
+                            <button class="cad-header-btn" onclick="cadClearAll()" title="Clear All">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                Clear
+                            </button>
+                            <div class="cad-header-divider"></div>
+                            <button class="cad-header-btn" onclick="cadCopy()" title="Copy (Ctrl+C)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                Copy
+                            </button>
+                            <button class="cad-header-btn" onclick="cadPaste()" title="Paste (Ctrl+V)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                                Paste
+                            </button>
+                            <button class="cad-header-btn" onclick="cadDuplicate()" title="Duplicate (Ctrl+D)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                            </button>
+                            <div class="cad-header-divider"></div>
+                            <button class="cad-header-btn accent" onclick="cadExportDXF()" title="Export DXF">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                Export DXF
+                            </button>
+                            <button class="cad-header-btn primary" onclick="navigateTo('viewer3d')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                                View in 3D →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- CAD Sidebar Toolbar -->
+                <div class="cad-sidebar">
+                    <div class="tool-section">
+                        <span class="tool-section-label">Select</span>
+                        <button class="cad-tool-btn active" data-tool="select" onclick="setCadTool('select')" title="Select (V)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="pan" onclick="setCadTool('pan')" title="Pan (H)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+                        </button>
+                    </div>
+                    <div class="tool-divider"></div>
+                    <div class="tool-section">
+                        <span class="tool-section-label">Draw</span>
+                        <button class="cad-tool-btn" data-tool="pipe" onclick="setCadTool('pipe')" title="Pipe (P)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><circle cx="5" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="polyline" onclick="setCadTool('polyline')" title="Polyline (L)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 20 8 8 14 16 20 4"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="arc" onclick="setCadTool('arc')" title="Arc (A)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 A 16 16 0 0 1 20 20"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="rectangle" onclick="setCadTool('rectangle')" title="Rectangle (R)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+                        </button>
+                    </div>
+                    <div class="tool-divider"></div>
+                    <div class="tool-section">
+                        <span class="tool-section-label">Nodes</span>
+                        <button class="cad-tool-btn" data-tool="manhole" onclick="setCadTool('manhole')" title="Manhole (M)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="catchpit" onclick="setCadTool('catchpit')" title="Catch Pit (C)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="outlet" onclick="setCadTool('outlet')" title="Outlet (O)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M12 6v12"/><path d="M4 12h16"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="junction" onclick="setCadTool('junction')" title="Junction (J)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg>
+                        </button>
+                    </div>
+                    <div class="tool-divider"></div>
+                    <div class="tool-section">
+                        <span class="tool-section-label">Modify</span>
+                        <button class="cad-tool-btn" data-tool="move" onclick="setCadTool('move')" title="Move">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="19 9 22 12 19 15"/><polyline points="9 19 12 22 15 19"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="rotate" onclick="setCadTool('rotate')" title="Rotate">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                    </div>
+                    <div class="tool-divider"></div>
+                    <div class="tool-section">
+                        <span class="tool-section-label">Annotate</span>
+                        <button class="cad-tool-btn" data-tool="text" onclick="setCadTool('text')" title="Text (T)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="dimension" onclick="setCadTool('dimension')" title="Dimension (D)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="8" x2="4" y2="16"/><line x1="20" y1="8" x2="20" y2="16"/><path d="M7 12l-3-2M7 12l-3 2M17 12l3-2M17 12l3 2"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="label" onclick="setCadTool('label')" title="Label (B)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                        </button>
+                    </div>
+                    <div class="tool-divider"></div>
+                    <div class="tool-section">
+                        <span class="tool-section-label">Measure</span>
+                        <button class="cad-tool-btn" data-tool="measure" onclick="setCadTool('measure')" title="Measure Distance">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l20 20M7 2v5M2 7h5M17 22v-5M22 17h-5"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" data-tool="angle" onclick="setCadTool('angle')" title="Measure Angle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M4 20L12 4M4 20l8-4"/><path d="M8 14a6 6 0 014-2"/></svg>
+                        </button>
+                    </div>
+                    <div class="tool-divider"></div>
+                    <div class="tool-section">
+                        <span class="tool-section-label">View</span>
+                        <button class="cad-tool-btn" onclick="cadZoomIn()" title="Zoom In (+)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" onclick="cadZoomOut()" title="Zoom Out (-)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                        </button>
+                        <button class="cad-tool-btn" onclick="cadResetView()" title="Fit to View">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- CAD Canvas -->
+                <div class="cad-canvas-wrapper" id="cadCanvasWrapper">
+                    <canvas id="cadCanvas"></canvas>
+                    <div class="cad-hud" id="cadHud" style="display:none">
+                        <div class="hud-val">L: <span id="hudLen">0.00</span></div>
+                        <div class="hud-val" id="hudAngCont">∠: <span id="hudAng">0°</span></div>
+                    </div>
+                </div>
+                <!-- CAD Status Bar -->
+                <div class="cad-status-bar">
+                    <div class="status-left">
+                        <span class="cad-coords" id="cadCoords">(0, 0)</span>
+                    </div>
+                    <div class="status-right">
+                        <button class="status-btn" id="btnOrtho" onclick="toggleOrtho()" title="Ortho Mode (Shift)">ORTHO</button>
+                        <button class="status-btn active" id="btnSnapGrid" onclick="toggleSnap('grid')">GRID</button>
+                        <button class="status-btn active" id="btnSnapNode" onclick="toggleSnap('node')">OSNAP</button>
+                    </div>
+                </div>
+                <!-- CAD Properties Panel -->
+                <div class="cad-properties" id="cadProperties">
+                    <div class="properties-header">
+                        <h4>Properties</h4>
+                        <button class="prop-toggle" onclick="toggleProperties()" title="Toggle Panel">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <div class="properties-body" id="propertiesBody">
+                        <div class="prop-section">
+                            <span class="prop-label">Element</span>
+                            <span class="prop-value" id="propType">None selected</span>
+                        </div>
+                        <div class="prop-section">
+                            <span class="prop-label">Position</span>
+                            <div class="prop-row">
+                                <label>X</label><input type="number" id="propX" class="prop-input" disabled>
+                                <label>Y</label><input type="number" id="propY" class="prop-input" disabled>
+                            </div>
+                        </div>
+                        <div class="prop-section">
+                            <span class="prop-label">Style</span>
+                            <div class="prop-row">
+                                <label>Color</label>
+                                <input type="color" id="propColor" value="#00f5d4" class="prop-color">
+                            </div>
+                            <div class="prop-row">
+                                <label>Width</label>
+                                <input type="number" id="propWidth" value="2" min="1" max="10" class="prop-input">
+                            </div>
+                            <div class="prop-row">
+                                <label>Style</label>
+                                <select id="propLineStyle" class="prop-select">
+                                    <option value="solid">Solid</option>
+                                    <option value="dashed">Dashed</option>
+                                    <option value="dotted">Dotted</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="prop-section">
+                            <span class="prop-label">Snap Settings</span>
+                            <div class="prop-row">
+                                <label>Endpoint</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="snapEnd" checked onchange="toggleSnap('end')">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="prop-row">
+                                <label>Midpoint</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="snapMid" checked onchange="toggleSnap('mid')">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="prop-row">
+                                <label>Intersection</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="snapInt" checked onchange="toggleSnap('int')">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="prop-section">
+                            <span class="prop-label">Layers</span>
+                            <div class="layers-list" id="layersList">
+                                <div class="layer-item active" data-layer="pipes">
+                                    <span class="layer-color" style="background:#00f5d4"></span>
+                                    <span>Pipes</span>
+                                    <button class="layer-toggle on" onclick="toggleLayer('pipes')">👁</button>
+                                </div>
+                                <div class="layer-item" data-layer="nodes">
+                                    <span class="layer-color" style="background:#7b61ff"></span>
+                                    <span>Nodes</span>
+                                    <button class="layer-toggle on" onclick="toggleLayer('nodes')">👁</button>
+                                </div>
+                                <div class="layer-item" data-layer="annotations">
+                                    <span class="layer-color" style="background:#f59e0b"></span>
+                                    <span>Annotations</span>
+                                    <button class="layer-toggle on" onclick="toggleLayer('annotations')">👁</button>
+                                </div>
+                                <div class="layer-item" data-layer="dimensions">
+                                    <span class="layer-color" style="background:#ef4444"></span>
+                                    <span>Dimensions</span>
+                                    <button class="layer-toggle on" onclick="toggleLayer('dimensions')">👁</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- LEGEND at bottom -->
+                    <div class="cad-legend">
+                        <h4>LEGEND</h4>
+                        <div class="legend-item"><span class="legend-swatch" style="background:#00f5d4"></span> Pipe</div>
+                        <div class="legend-item"><span class="legend-swatch" style="background:#7b61ff;border-radius:50%"></span> Manhole</div>
+                        <div class="legend-item"><span class="legend-swatch" style="background:#f59e0b"></span> Catch Pit</div>
+                        <div class="legend-item"><span class="legend-swatch" style="background:#3b82f6"></span> Outlet</div>
+                        <div class="legend-item"><span class="legend-swatch" style="background:#ec4899;border-radius:50%"></span> Junction</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULTS PAGE -->
+        <section class="page" id="page-results">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                    <div>
+                        <h1>Analysis Results & Graphs</h1>
+                        <p>Comprehensive hydraulic analysis with detailed visualizations and performance metrics.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Summary Stats -->
+            <div class="results-stats">
+                <div class="glass-card stat-card"><span class="stat-card-label">Flow Rate</span><span class="stat-card-value" id="resFlowRate">0.05 m³/s</span></div>
+                <div class="glass-card stat-card"><span class="stat-card-label">Velocity</span><span class="stat-card-value" id="resVelocity">1.32 m/s</span></div>
+                <div class="glass-card stat-card"><span class="stat-card-label">Pipe Dia.</span><span class="stat-card-value" id="resPipeDia">220 mm</span></div>
+                <div class="glass-card stat-card"><span class="stat-card-label">Material</span><span class="stat-card-value" id="resMaterial">PVC</span></div>
+                <div class="glass-card stat-card"><span class="stat-card-label">Reynolds No.</span><span class="stat-card-value" id="resReynolds">29,040</span></div>
+                <div class="glass-card stat-card"><span class="stat-card-label">Froude No.</span><span class="stat-card-value" id="resFroude">0.90</span></div>
+            </div>
+            <!-- Row 1: Line Charts -->
+            <div class="results-charts">
+                <div class="glass-card chart-card">
+                    <h3>Flow Rate & Velocity vs Slope</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartFlowVelocity"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card chart-card">
+                    <h3>Peak Discharge vs Rainfall</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDischarge"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Row 2: Bar & Donut -->
+            <div class="results-charts">
+                <div class="glass-card chart-card">
+                    <h3>Pipe Size Comparison by Slope</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartBarPipeSize"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card chart-card">
+                    <h3>Material Cost Distribution</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDonut"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Row 3: Radar & Gauge -->
+            <div class="results-charts">
+                <div class="glass-card chart-card">
+                    <h3>Performance Radar Analysis</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartRadar"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card chart-card">
+                    <h3>Velocity Compliance Gauge</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartGauge"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Row 4: Hydraulic Grade Line -->
+            <div class="results-charts" style="grid-template-columns:1fr">
+                <div class="glass-card chart-card">
+                    <h3>Hydraulic Grade Line & Energy Line</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="chartHGL"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Detailed Table -->
+            <div class="results-charts" style="grid-template-columns:1fr">
+                <div class="glass-card chart-card">
+                    <h3>Detailed Hydraulic Analysis Table</h3>
+                    <div class="results-table-wrapper">
+                        <table class="results-table" id="resultsTable">
+                            <thead>
+                                <tr><th>Slope (%)</th><th>Flow Rate (m³/s)</th><th>Velocity (m/s)</th><th>Pipe Dia. (mm)</th><th>Reynolds No.</th><th>Froude No.</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="resultsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI RECOMMENDATION PAGE -->
+        <section class="page" id="page-ai">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <div>
+                        <h1>AI Recommendation</h1>
+                        <p>Get intelligent drainage system development recommendations for your selected location based on global engineering best practices.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-layout">
+                <div class="glass-card ai-sidebar">
+                    <h3>Context Settings</h3>
+                    <div class="prop-section">
+                        <span class="prop-label">Gemini API Key</span>
+                        <p class="prop-desc" style="font-size:0.8rem; color:rgba(232, 234, 237, 0.6); margin-bottom:8px">Stored locally to authenticate AI requests.</p>
+                        <input type="password" id="aiApiKey" class="input-field" placeholder="Enter API Key">
+                    </div>
+                    <div class="prop-section">
+                        <span class="prop-label">Location Context</span>
+                        <div class="data-row"><span class="data-label">Selected Address</span><span class="data-value" id="aiContextAddr">—</span></div>
+                        <div class="data-row"><span class="data-label">Terrain Data</span><span class="data-value" id="aiContextTerrain">—</span></div>
+                        <div class="data-row"><span class="data-label">Hydraulics Data</span><span class="data-value" id="aiContextHydraulics">—</span></div>
+                    </div>
+                    <button class="btn btn-primary btn-full btn-glow" onclick="generateAIRecommendation()" id="btnGenerateAI">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                        <span>Generate Recommendation</span>
+                    </button>
+                    <div id="aiErrorMsg" class="error-msg" style="display:none; color:#ef4444; margin-top:10px; font-size:0.85rem"></div>
+                </div>
+                <div class="glass-card ai-content">
+                    <h3>AI Strategy & Recommendations</h3>
+                    <div id="aiResponseArea" class="ai-response-area">
+                        <div class="placeholder-text-container" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" style="margin-bottom:16px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                            <p class="placeholder-text">Enter your API key and click 'Generate' to analyze the selected map region and receive AI-driven engineering advice.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- TECHNOLOGIES PAGE -->
+        <section class="page" id="page-tech">
+            <div class="tech-layout">
+                <div class="tech-hero glass-card">
+                    <h2>Platform Technologies & Vision</h2>
+                    <p class="tech-moto"><strong>Our Moto:</strong> To empower civil engineers with ultra-modern, ambient, intelligent tools that drastically accelerate geographical analysis and hydraulic systems design.</p>
+                    <p class="tech-usefulness"><strong>Why is it useful?</strong> Instead of using multiple disjointed tools for terrain mapping, calculation, 3D checking, and AI consulting, DrainFlow Pro merges them all into one sleek, browser-based, interactive matrix that feels native, premium, and instantly responsive.</p>
+                </div>
+                
+                <div class="tech-grid">
+                    <div class="glass-card tech-card">
+                        <h3>HTML / CSS / JS</h3>
+                        <p>The core of the application relies on deeply optimized vanilla JavaScript and custom HTML5/CSS3. It uses a "Glassmorphism" UI design system with dynamic, ambient background rendering and pure CSS Grid geometry.</p>
+                    </div>
+                    <div class="glass-card tech-card">
+                        <h3>Google Gemini AI</h3>
+                        <p>Leveraging <strong>gemini-1.5-flash</strong> via the Generative Language API. Employs advanced live Google Search grounding to retrieve real-time geographical constraints and synthesize professional-grade hydraulic recommendations.</p>
+                    </div>
+                    <div class="glass-card tech-card">
+                        <h3>Supabase Auth</h3>
+                        <p>Integrated directly with a live Supabase PostgreSQL backend. Provides instantaneous authentication logic via JWT (JSON Web Tokens) allowing secure state storage.</p>
+                    </div>
+                    <div class="glass-card tech-card">
+                        <h3>Leaflet.js</h3>
+                        <p>Powers the interactive Map Designer, providing real-world topographical context and geolocation tagging for specific drainage deployments.</p>
+                    </div>
+                    <div class="glass-card tech-card">
+                        <h3>Three.js</h3>
+                        <p>A WebGL environment generating dynamic, procedural 3D terrain representation and rendering real-time pipe models and water flow visualizations natively inside the browser.</p>
+                    </div>
+                    <div class="glass-card tech-card">
+                        <h3>Chart.js</h3>
+                        <p>Used for the Results dashboard to plot complex, high-performance mathematical arrays for velocity and Froude/Reynolds relationships instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SIGN IN PAGE -->
+        <section class="page" id="page-signin">
+            <div class="signin-layout">
+                <div class="glass-card signin-card">
+                    <h2>Supabase Auth Portal</h2>
+                    <p style="color:var(--text-secondary); margin-bottom:24px; font-size:0.9rem;">Connect your database or sign in to your existing account.</p>
+                    
+                    <div class="form-group">
+                        <label>Supabase Project URL</label>
+                        <input type="text" id="supaUrl" placeholder="https://xyz.supabase.co" class="glass-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Supabase Anon Key</label>
+                        <input type="password" id="supaKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..." class="glass-input">
+                    </div>
+                    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin: 24px 0;">
+                    
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="authUsername" placeholder="Enter your username" class="glass-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Email ID</label>
+                        <input type="email" id="authEmail" placeholder="you@domain.com" class="glass-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="authPassword" placeholder="••••••••" class="glass-input">
+                    </div>
+                    
+                    <div id="authStatus" style="font-size:0.85rem; padding: 10px; border-radius: 4px; display:none; margin-bottom: 20px;"></div>
+                    
+                    <div class="auth-buttons">
+                        <button class="btn btn-primary" onclick="handleAuth('login')">Login</button>
+                        <button class="btn btn-glass" onclick="handleAuth('register')">Register / Sign Up</button>
+                    </div>
+                </div>
+                <!-- User Dashboard Box (Visible when logged in) -->
+                <div class="glass-card user-dashboard" id="userDashboard" style="display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px;">
+                    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent-primary),#7b61ff);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700" id="userAvatar">U</div>
+                    <h2 id="userNameDisplay">Welcome Back!</h2>
+                    <p id="userEmailDisplay" style="color:var(--text-secondary);">user@email.com</p>
+                    <button class="btn btn-glass" onclick="handleLogout()" style="margin-top:10px;">Logout</button>
+                    
+                    <div class="user-projects-section" style="width:100%; text-align:left; margin-top:40px; border-top:1px solid rgba(255,255,255,0.06); padding-top:30px;">
+                        <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px; font-size:1.1rem; color:var(--text-primary)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            My Saved Projects
+                        </h3>
+                        <div id="projectList" class="project-list">
+                            <p class="placeholder-text" style="font-size:0.85rem;">You haven't saved any projects yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="particles.js"></script>
+    <script src="cad-engine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
