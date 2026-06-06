@@ -26,6 +26,7 @@
         <div class="bg-orb bg-orb-2"></div>
         <div class="bg-orb bg-orb-3"></div>
         <div class="bg-orb bg-orb-4"></div>
+        <div class="bg-orb bg-orb-5"></div>
         <canvas id="particleCanvas"></canvas>
     </div>
 
@@ -98,6 +99,26 @@
         <!-- HOME PAGE -->
         <section class="page active" id="page-home">
             <div class="hero">
+                <!-- Animated terrain contour lines behind hero content -->
+                <svg class="hero-terrain-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 600 C100 580 220 530 380 510 S530 525 680 490 S820 450 970 430 S1110 455 1260 435"/>
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 540 C90 518 210 465 365 442 S515 458 668 420 S808 378 960 355 S1100 382 1255 360"/>
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 475 C80 452 198 396 352 370 S502 388 656 346 S796 302 949 278 S1090 308 1248 285"/>
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 408 C70 382 185 324 338 296 S490 316 645 270 S785 224 940 198 S1082 232 1242 208"/>
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 338 C60 310 172 250 324 220 S478 242 634 192 S775 144 932 116 S1075 154 1236 130"/>
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 266 C50 236 158 174 308 142 S464 166 622 112 S764 62 924 32 S1068 74 1230 50"/>
+                    <path class="hero-terrain-line" stroke-dasharray="2200" d="M-50 192 C40 160 144 96 292 62 S450 88 610 30 S753 -20 916 -52 S1062 -8 1224 -30"/>
+                    <!-- Animated flow dots along terrain -->
+                    <circle r="4" fill="#00f5d4" opacity="0.7" style="filter:drop-shadow(0 0 6px #00f5d4)">
+                        <animateMotion dur="9s" repeatCount="indefinite" path="M-50 510 C200 490 380 465 680 440 S960 415 1260 390"/>
+                    </circle>
+                    <circle r="3" fill="#7b61ff" opacity="0.6" style="filter:drop-shadow(0 0 5px #7b61ff)">
+                        <animateMotion dur="12s" repeatCount="indefinite" begin="-3s" path="M-50 420 C180 395 360 368 656 330 S940 298 1248 265"/>
+                    </circle>
+                    <circle r="2.5" fill="#3b82f6" opacity="0.65" style="filter:drop-shadow(0 0 4px #3b82f6)">
+                        <animateMotion dur="10s" repeatCount="indefinite" begin="-6s" path="M-50 330 C160 302 340 270 634 230 S920 194 1236 160"/>
+                    </circle>
+                </svg>
                 <div class="hero-content">
                     <div class="hero-badge">
                         <span class="badge-dot"></span>

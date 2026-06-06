@@ -39,31 +39,150 @@ function drawHeroScene() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
     let frame = 0;
+    let startTime = performance.now();
+
+    // Pipe network layout
+    const cx = w / 2, cy = h / 2 + 30;
+    const pipes = [
+        // Main horizontal trunk
+        [{x:cx-145,y:cy+10},{x:cx-70,y:cy-18},{x:cx,y:cy-8},{x:cx+70,y:cy-25},{x:cx+145,y:cy+5}],
+        // Branch up-left
+        [{x:cx-70,y:cy-18},{x:cx-110,y:cy-65},{x:cx-70,y:cy-90}],
+        // Branch up-right
+        [{x:cx+70,y:cy-25},{x:cx+105,y:cy-70},{x:cx+60,y:cy-95}],
+        // Branch down
+        [{x:cx,y:cy-8},{x:cx+20,y:cy+45},{x:cx-10,y:cy+80}],
+    ];
+    const nodeColors = ['#00f5d4','#7b61ff','#f59e0b','#3b82f6','#ec4899','#00f5d4','#7b61ff'];
+    const nodes = [
+        {x:cx-145,y:cy+10,c:'#3b82f6'},
+        {x:cx-70, y:cy-18,c:'#7b61ff'},
+        {x:cx,    y:cy-8, c:'#00f5d4'},
+        {x:cx+70, y:cy-25,c:'#f59e0b'},
+        {x:cx+145,y:cy+5, c:'#ec4899'},
+        {x:cx-110,y:cy-65,c:'#00f5d4'},
+        {x:cx-70, y:cy-90,c:'#7b61ff'},
+        {x:cx+105,y:cy-70,c:'#00f5d4'},
+        {x:cx+60, y:cy-95,c:'#3b82f6'},
+        {x:cx+20, y:cy+45,c:'#f59e0b'},
+        {x:cx-10, y:cy+80,c:'#ec4899'},
+    ];
+
+    function glowLine(x1,y1,x2,y2,color,width,glowSize) {
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = glowSize;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+        ctx.restore();
+    }
+
+    function glowCircle(x,y,r,color,glowSize,fillColor) {
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = glowSize;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle = fillColor || color;
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawPolyline(pts, color, width, glow) {
+        if (pts.length < 2) return;
+        ctx.save();
+        ctx.shadowColor = color; ctx.shadowBlur = glow;
+        ctx.strokeStyle = color; ctx.lineWidth = width;
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.beginPath(); pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function flowDotOnPipe(pts, progress, color) {
+        const totalSegs = pts.length - 1;
+        const scaled = progress * totalSegs;
+        const seg = Math.min(Math.floor(scaled), totalSegs - 1);
+        const t = scaled - seg;
+        const px = pts[seg].x + (pts[seg+1].x - pts[seg].x) * t;
+        const py = pts[seg].y + (pts[seg+1].y - pts[seg].y) * t;
+        glowCircle(px, py, 3.5, color, 14, color);
+    }
+
     function draw() {
         ctx.clearRect(0, 0, w, h);
-        const cx = w/2, cy = h/2 + 40, t = frame * 0.02;
-        // Platform
-        ctx.fillStyle = 'rgba(10,14,26,0.8)';
-        ctx.beginPath(); ctx.moveTo(cx,cy-60); ctx.lineTo(cx+140,cy-20); ctx.lineTo(cx,cy+20); ctx.lineTo(cx-140,cy-20); ctx.closePath(); ctx.fill();
-        const borderGrad = ctx.createLinearGradient(cx-140,cy-60,cx+140,cy+60);
-        borderGrad.addColorStop(0,'rgba(123,97,255,0.3)'); borderGrad.addColorStop(0.5,'rgba(0,245,212,0.3)'); borderGrad.addColorStop(1,'rgba(59,130,246,0.3)');
-        ctx.strokeStyle = borderGrad; ctx.lineWidth = 1.5; ctx.stroke();
-        // Grid
-        ctx.strokeStyle = 'rgba(0,245,212,0.06)'; ctx.lineWidth = 0.5;
-        for (let i = -4; i <= 4; i++) { ctx.beginPath(); ctx.moveTo(cx+i*28,cy-60+Math.abs(i)*5); ctx.lineTo(cx+i*28,cy+20-Math.abs(i)*5); ctx.stroke(); }
-        // Pipes
-        ctx.strokeStyle = 'rgba(0,245,212,0.6)'; ctx.lineWidth = 2;
-        const pts = [{x:cx-80,y:cy-30},{x:cx-20,y:cy-10},{x:cx+40,y:cy-25},{x:cx+90,y:cy-5}];
-        ctx.beginPath(); pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
-        // Flow dots
-        for (let i=0;i<3;i++){const fp=((t%1)+i*0.33)%1;const seg=Math.floor(fp*3);const st=(fp*3)%1;if(seg<3){const px=pts[seg].x+(pts[seg+1].x-pts[seg].x)*st;const py=pts[seg].y+(pts[seg+1].y-pts[seg].y)*st;ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fillStyle='rgba(0,245,212,0.8)';ctx.fill();}}
-        // Nodes
-        [{x:cx-80,y:cy-30,c:'#7b61ff'},{x:cx-20,y:cy-10,c:'#f59e0b'},{x:cx+40,y:cy-25,c:'#3b82f6'},{x:cx+90,y:cy-5,c:'#ec4899'}].forEach(n=>{
-            const bob=Math.sin(t*2+n.x*0.01)*2;
-            ctx.beginPath();ctx.arc(n.x,n.y+bob,6,0,Math.PI*2);ctx.fillStyle=n.c;ctx.fill();
+        const elapsed = (performance.now() - startTime) * 0.001;
+        const t = elapsed;
+
+        // ---- Background platform ----
+        ctx.save();
+        ctx.fillStyle = 'rgba(8,12,26,0.65)';
+        const rx = 170, ry = 100;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 40, rx, ry * 0.35, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // ---- Draw pipes ----
+        drawPolyline(pipes[0], 'rgba(0,245,212,0.75)', 2.5, 12);
+        drawPolyline(pipes[1], 'rgba(123,97,255,0.65)', 2,   10);
+        drawPolyline(pipes[2], 'rgba(59,130,246,0.65)',  2,   10);
+        drawPolyline(pipes[3], 'rgba(0,245,212,0.55)',   1.8, 8);
+
+        // ---- Animated flow dots (5 dots across the network) ----
+        const sp = 0.18; // flow speed
+        flowDotOnPipe(pipes[0], (t * sp) % 1, '#00f5d4');
+        flowDotOnPipe(pipes[0], ((t * sp) + 0.4) % 1, '#00f5d4');
+        flowDotOnPipe(pipes[1], (t * sp * 1.3) % 1, '#7b61ff');
+        flowDotOnPipe(pipes[2], (t * sp * 1.1 + 0.5) % 1, '#3b82f6');
+        flowDotOnPipe(pipes[3], (t * sp * 0.9 + 0.2) % 1, '#00f5d4');
+
+        // ---- Nodes ----
+        nodes.forEach((n, i) => {
+            const bob = Math.sin(t * 1.8 + i * 0.7) * 2.5;
+            const pulse = 1 + 0.12 * Math.sin(t * 2.5 + i * 1.1);
+            // Outer ring pulse
+            ctx.save();
+            ctx.globalAlpha = 0.25 + 0.15 * Math.sin(t * 2 + i);
+            glowCircle(n.x, n.y + bob, 11 * pulse, n.c, 0, 'transparent');
+            ctx.restore();
+            // Core node
+            glowCircle(n.x, n.y + bob, 6, n.c, 16, n.c + 'cc');
         });
-        ctx.fillStyle='rgba(232,234,237,0.3)';ctx.font='bold 11px Outfit';ctx.textAlign='center';ctx.fillText('DRAINAGE NETWORK PREVIEW',cx,cy-90);
-        frame++; requestAnimationFrame(draw);
+
+        // ---- Labels ----
+        ctx.save();
+        ctx.globalAlpha = 0.45 + 0.1 * Math.sin(t * 0.8);
+        ctx.fillStyle = 'rgba(0,245,212,0.9)';
+        ctx.font = 'bold 10px "Outfit", "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '2px';
+        ctx.shadowColor = '#00f5d4'; ctx.shadowBlur = 10;
+        ctx.fillText('DRAINAGE NETWORK', cx, cy - 120);
+        ctx.restore();
+
+        // ---- Subtle data readouts ----
+        const labels = [
+            {x:cx-100, y:cy-30, text:'Q=0.42m³/s'},
+            {x:cx+85,  y:cy-45, text:'v=1.8m/s'},
+            {x:cx-15,  y:cy+105, text:'Ø300mm'},
+        ];
+        labels.forEach((l, i) => {
+            const fade = 0.5 + 0.3 * Math.sin(t * 1.2 + i * 2.1);
+            ctx.save();
+            ctx.globalAlpha = fade;
+            ctx.fillStyle = 'rgba(232,234,237,0.8)';
+            ctx.font = '9px "JetBrains Mono","Fira Code",monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(l.text, l.x, l.y);
+            ctx.restore();
+        });
+
+        frame++;
+        requestAnimationFrame(draw);
     }
     draw();
 }
