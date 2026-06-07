@@ -334,6 +334,23 @@ h1, h2, h3, h4, h5 {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ============ DRAINAGE FRAME VIDEO CANVAS ============ */
+.drainage-frame-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    /* Hidden by default — shown only on the home page via JS class */
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.drainage-frame-canvas.active {
+    opacity: 1;
+}
+
 /* ============ HERO ============ */
 .hero {
     display: flex;

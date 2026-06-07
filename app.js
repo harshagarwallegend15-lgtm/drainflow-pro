@@ -14,6 +14,9 @@ function navigateTo(page) {
     const navLink = document.querySelector(`.nav-link[data-page="${page}"]`);
     if (pageEl) pageEl.classList.add('active');
     if (navLink) navLink.classList.add('active');
+    // Show drainage video only on home page
+    const drainCanvas = document.getElementById('drainageFrameCanvas');
+    if (drainCanvas) drainCanvas.classList.toggle('active', page === 'home');
     if (page === 'cad') setTimeout(() => CAD.init(), 50);
     if (page === 'viewer3d') setTimeout(() => init3DViewer(), 50);
     if (page === 'results') setTimeout(() => drawAllCharts(), 100);

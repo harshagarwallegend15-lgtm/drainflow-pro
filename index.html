@@ -30,6 +30,9 @@
         <canvas id="particleCanvas"></canvas>
     </div>
 
+    <!-- Drainage Video Frame Player — hero section only -->
+    <canvas id="drainageFrameCanvas" class="drainage-frame-canvas" aria-hidden="true"></canvas>
+
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <div class="nav-brand" onclick="navigateTo('home')">
@@ -902,6 +905,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="drainage-frames.js"></script>
     <script src="particles.js"></script>
     <script src="cad-engine.js"></script>
     <script src="app.js"></script>
