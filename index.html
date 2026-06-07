@@ -904,6 +904,116 @@
 
     </main>
 
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer" id="siteFooter">
+        <!-- Top glow divider -->
+        <div class="footer-divider"></div>
+
+        <div class="footer-inner">
+            <!-- Brand column -->
+            <div class="footer-col footer-brand-col">
+                <div class="footer-logo" onclick="navigateTo('home')">
+                    <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2C14 2 6 10 6 16a8 8 0 1016 0C22 10 14 2 14 2z" fill="url(#fDropGrad)" stroke="rgba(0,245,212,0.5)" stroke-width="1.2"/>
+                        <path d="M14 8c0 0-4 4.5-4 7.5a4 4 0 108 0C18 12.5 14 8 14 8z" fill="url(#fDropInner)" opacity="0.7"/>
+                        <defs>
+                            <linearGradient id="fDropGrad" x1="6" y1="2" x2="22" y2="24">
+                                <stop offset="0%" stop-color="#00f5d4"/><stop offset="100%" stop-color="#7b61ff"/>
+                            </linearGradient>
+                            <linearGradient id="fDropInner" x1="10" y1="8" x2="18" y2="20">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/><stop offset="100%" stop-color="#00f5d4" stop-opacity="0.2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <span>DrainFlow <span class="footer-logo-accent">Pro</span></span>
+                </div>
+                <p class="footer-tagline">Professional-grade hydraulic analysis, terrain mapping, and AI-driven drainage system design — all in one platform.</p>
+                <div class="footer-badges">
+                    <span class="footer-badge"><span class="badge-dot"></span>AI-Powered</span>
+                    <span class="footer-badge"><span class="badge-dot badge-dot-blue"></span>ISO Compliant</span>
+                    <span class="footer-badge"><span class="badge-dot badge-dot-purple"></span>Cloud Sync</span>
+                </div>
+            </div>
+
+            <!-- Tools column -->
+            <div class="footer-col">
+                <h4 class="footer-col-title">Tools</h4>
+                <ul class="footer-links">
+                    <li><a onclick="navigateTo('map')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/></svg>
+                        Map Designer
+                    </a></li>
+                    <li><a onclick="navigateTo('calculator')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/></svg>
+                        Hydraulic Calculator
+                    </a></li>
+                    <li><a onclick="navigateTo('viewer3d')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                        3D Viewer
+                    </a></li>
+                    <li><a onclick="navigateTo('cad')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83"/></svg>
+                        CAD Tool
+                    </a></li>
+                    <li><a onclick="navigateTo('results')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                        Results & Graphs
+                    </a></li>
+                </ul>
+            </div>
+
+            <!-- Platform column -->
+            <div class="footer-col">
+                <h4 class="footer-col-title">Platform</h4>
+                <ul class="footer-links">
+                    <li><a onclick="navigateTo('ai')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        AI Recommendation
+                    </a></li>
+                    <li><a onclick="navigateTo('tech')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        Technologies
+                    </a></li>
+                    <li><a onclick="navigateTo('signin')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Sign In / Register
+                    </a></li>
+                </ul>
+            </div>
+
+            <!-- Standards column -->
+            <div class="footer-col">
+                <h4 class="footer-col-title">Engineering Standards</h4>
+                <ul class="footer-links footer-links-plain">
+                    <li><span class="footer-std-tag">Manning's Equation</span> Open-channel flow</li>
+                    <li><span class="footer-std-tag">Rational Method</span> Peak discharge</li>
+                    <li><span class="footer-std-tag">IS 458</span> Precast concrete pipes</li>
+                    <li><span class="footer-std-tag">IRC SP-42</span> Road drainage guidelines</li>
+                    <li><span class="footer-std-tag">AASHTO</span> Culvert hydraulic design</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-left">
+                <span>© 2026 DrainFlow Pro. Built for civil engineers.</span>
+                <span class="footer-sep">·</span>
+                <span>Powered by <span class="footer-tech-tag">Google Gemini AI</span></span>
+                <span class="footer-sep">·</span>
+                <span class="footer-tech-tag">Supabase</span>
+                <span class="footer-sep">·</span>
+                <span class="footer-tech-tag">Three.js</span>
+            </div>
+            <div class="footer-bottom-right">
+                <button class="footer-scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                    Top
+                </button>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="drainage-frames.js"></script>
     <script src="particles.js"></script>

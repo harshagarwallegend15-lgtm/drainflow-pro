@@ -156,15 +156,16 @@ function drawHeroScene() {
             glowCircle(n.x, n.y + bob, 6, n.c, 16, n.c + 'cc');
         });
 
-        // ---- Labels ----
+        // ---- Label — positioned inside the canvas box, not above it ----
         ctx.save();
-        ctx.globalAlpha = 0.45 + 0.1 * Math.sin(t * 0.8);
-        ctx.fillStyle = 'rgba(0,245,212,0.9)';
+        ctx.globalAlpha = 0.42 + 0.1 * Math.sin(t * 0.8);
+        ctx.fillStyle = 'rgba(0,245,212,0.88)';
         ctx.font = 'bold 10px "Outfit", "Inter", sans-serif';
         ctx.textAlign = 'center';
         ctx.letterSpacing = '2px';
         ctx.shadowColor = '#00f5d4'; ctx.shadowBlur = 10;
-        ctx.fillText('DRAINAGE NETWORK', cx, cy - 120);
+        // Positioned at top-centre of the canvas (not above it)
+        ctx.fillText('DRAINAGE NETWORK', cx, 22);
         ctx.restore();
 
         // ---- Subtle data readouts ----
