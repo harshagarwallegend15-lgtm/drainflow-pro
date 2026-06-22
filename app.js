@@ -17,6 +17,9 @@ function navigateTo(page) {
     // Show drainage video only on home page
     const drainCanvas = document.getElementById('drainageFrameCanvas');
     if (drainCanvas) drainCanvas.classList.toggle('active', page === 'home');
+    // Show footer only on home page
+    const footer = document.getElementById('siteFooter');
+    if (footer) footer.style.display = page === 'home' ? 'block' : 'none';
     if (page === 'cad') setTimeout(() => CAD.init(), 50);
     if (page === 'viewer3d') setTimeout(() => init3DViewer(), 50);
     if (page === 'results') setTimeout(() => drawAllCharts(), 100);
