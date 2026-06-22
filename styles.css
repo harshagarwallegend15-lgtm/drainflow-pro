@@ -65,6 +65,8 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     line-height: 1.6;
+    display: flex;
+    flex-direction: column;
 }
 
 h1, h2, h3, h4, h5 {
@@ -316,10 +318,15 @@ h1, h2, h3, h4, h5 {
 }
 
 /* ============ PAGES ============ */
+main#app {
+    flex: 1 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
 .page {
     display: none;
     position: relative;
-    z-index: 1;
     min-height: 100vh;
     padding-top: var(--nav-height);
 }
@@ -1264,12 +1271,14 @@ h1, h2, h3, h4, h5 {
 /* ============ FOOTER ============ */
 .site-footer {
     position: relative;
-    z-index: 10;
-    background: rgba(8, 11, 22, 0.92);
+    z-index: 100;
+    background: rgba(8, 11, 22, 0.95);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    margin-top: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: auto;
+    clear: both;
+    isolation: isolate;
 }
 
 .footer-divider {
