@@ -1303,8 +1303,8 @@ main#app {
 .footer-inner {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1.4fr;
-    gap: 48px;
-    padding: 56px 60px 40px;
+    gap: 32px;
+    padding: 36px 60px 24px;
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -1335,11 +1335,11 @@ main#app {
 }
 
 .footer-tagline {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
-    line-height: 1.65;
-    max-width: 320px;
-    margin-bottom: 20px;
+    line-height: 1.5;
+    max-width: 300px;
+    margin-bottom: 14px;
 }
 
 .footer-badges {
@@ -1376,14 +1376,14 @@ main#app {
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent-primary);
-    margin-bottom: 20px;
+    margin-bottom: 14px;
 }
 
 .footer-links {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .footer-links a {
@@ -1439,7 +1439,7 @@ main#app {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 60px;
+    padding: 14px 60px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     gap: 16px;
     flex-wrap: wrap;
