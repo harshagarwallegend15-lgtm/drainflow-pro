@@ -26,7 +26,7 @@ function navigateTo(page) {
     if (page === 'ai') setTimeout(() => populateAIContext(), 50);
     if (page === 'signin') setTimeout(() => initAuthUI(), 50);
     if (page === 'home') setTimeout(() => { animateStats(); drawHeroScene(); }, 100);
-    if (page === 'map') setTimeout(() => initLeafletMap(), 100);
+    if (page === 'map') setTimeout(() => { initLeafletMap(); initMapSearch(); }, 100);
     window.scrollTo(0, 0);
 }
 function toggleNav() { document.getElementById('navLinks').classList.toggle('open'); }
@@ -216,6 +216,110 @@ function setMapLayer(type) {
     if (currentTileLayer) leafletMap.removeLayer(currentTileLayer);
     const attrs = { street:'&copy; OSM', satellite:'&copy; Esri', terrain:'&copy; OpenTopoMap', dark:'&copy; CartoDB' };
     currentTileLayer = L.tileLayer(tileLayers[type], { attribution: attrs[type], maxZoom: 19 }).addTo(leafletMap);
+}
+
+// ============ MAP SEARCH ============
+let searchDebounceTimer = null;
+
+function initMapSearch() {
+    const input = document.getElementById('mapSearchInput');
+    if (!input) return;
+    input.addEventListener('input', handleSearchInput);
+    input.addEventListener('keydown', handleSearchKeydown);
+    document.addEventListener('click', (e) => {
+        const suggestions = document.getElementById('mapSearchSuggestions');
+        if (suggestions && !e.target.closest('.map-search-wrapper')) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
+async function handleSearchInput(e) {
+    const query = e.target.value.trim();
+    const suggestionsEl = document.getElementById('mapSearchSuggestions');
+    if (query.length < 2) {
+        suggestionsEl.style.display = 'none';
+        return;
+    }
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => fetchSuggestions(query), 300);
+}
+
+function handleSearchKeydown(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        searchLocation();
+    } else if (e.key === 'Escape') {
+        document.getElementById('mapSearchSuggestions').style.display = 'none';
+    }
+}
+
+async function fetchSuggestions(query) {
+    const suggestionsEl = document.getElementById('mapSearchSuggestions');
+    try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
+        const results = await resp.json();
+        if (results.length === 0) {
+            suggestionsEl.innerHTML = '<div class="suggestion-item no-results">No locations found</div>';
+        } else {
+            suggestionsEl.innerHTML = results.map((r, i) => `
+                <div class="suggestion-item" data-index="${i}" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${escapeHtml(r.display_name)}">
+                    <span class="suggestion-icon">📍</span>
+                    <span class="suggestion-text">${escapeHtml(r.display_name)}</span>
+                </div>
+            `).join('');
+            suggestionsEl.querySelectorAll('.suggestion-item[data-index]').forEach(item => {
+                item.addEventListener('click', () => selectSuggestion(item));
+            });
+        }
+        suggestionsEl.style.display = 'block';
+        window._searchResults = results;
+    } catch (err) {
+        suggestionsEl.innerHTML = '<div class="suggestion-item no-results">Search error</div>';
+        suggestionsEl.style.display = 'block';
+    }
+}
+
+function selectSuggestion(item) {
+    const lat = parseFloat(item.dataset.lat);
+    const lon = parseFloat(item.dataset.lon);
+    const name = item.dataset.name;
+    document.getElementById('mapSearchInput').value = name.split(',').slice(0, 2).join(',');
+    document.getElementById('mapSearchSuggestions').style.display = 'none';
+    leafletMap.setView([lat, lon], 14);
+    simulateMapClick(lat, lon, name);
+}
+
+async function searchLocation() {
+    const input = document.getElementById('mapSearchInput');
+    const query = input.value.trim();
+    if (!query) return;
+    try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const results = await resp.json();
+        if (results.length > 0) {
+            const r = results[0];
+            const lat = parseFloat(r.lat);
+            const lon = parseFloat(r.lon);
+            leafletMap.setView([lat, lon], 14);
+            simulateMapClick(lat, lon, r.display_name);
+        }
+        document.getElementById('mapSearchSuggestions').style.display = 'none';
+    } catch (err) {
+        console.error('Search error:', err);
+    }
+}
+
+function simulateMapClick(lat, lng, address) {
+    if (mapMarker) leafletMap.removeLayer(mapMarker);
+    mapMarker = L.circleMarker([lat, lng], { radius: 8, color: '#00f5d4', fillColor: '#00f5d4', fillOpacity: 0.6, weight: 2 }).addTo(leafletMap);
+    onMapClick({ latlng: { lat, lng }, displayName: address });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 async function onMapClick(e) {

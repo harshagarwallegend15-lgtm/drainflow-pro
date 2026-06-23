@@ -230,6 +230,13 @@
                     </div>
                 </div>
                 <div class="map-toolbar">
+                    <div class="map-search-wrapper">
+                        <input type="text" id="mapSearchInput" class="map-search-input" placeholder="Search location..." autocomplete="off">
+                        <button class="map-search-btn" onclick="searchLocation()" title="Search">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        </button>
+                        <div id="mapSearchSuggestions" class="map-search-suggestions"></div>
+                    </div>
                     <button class="map-tool-btn active" onclick="setMapLayer('street')" title="Street View">🗺️ Street</button>
                     <button class="map-tool-btn" onclick="setMapLayer('satellite')" title="Satellite View">🛰️ Satellite</button>
                     <button class="map-tool-btn" onclick="setMapLayer('terrain')" title="Terrain View">⛰️ Terrain</button>

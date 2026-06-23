@@ -1023,6 +1023,103 @@ main#app {
     color: var(--accent-primary);
 }
 
+.map-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.map-search-input {
+    width: 220px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    outline: none;
+    transition: all var(--transition-fast);
+    font-family: 'Inter', sans-serif;
+}
+
+.map-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.map-search-input:focus {
+    border-color: var(--accent-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.map-search-btn {
+    padding: 8px 10px;
+    background: rgba(0, 245, 212, 0.1);
+    border: 1px solid rgba(0, 245, 212, 0.25);
+    border-radius: var(--radius-sm);
+    color: var(--accent-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-search-btn:hover {
+    background: rgba(0, 245, 212, 0.2);
+}
+
+.map-search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover:not(.no-results) {
+    background: rgba(0, 245, 212, 0.08);
+}
+
+.suggestion-item.no-results {
+    color: var(--text-muted);
+    cursor: default;
+    font-size: 0.82rem;
+}
+
+.suggestion-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.suggestion-text {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
 .page-header {
     display: flex;
     align-items: center;
