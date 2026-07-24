@@ -4751,14 +4751,244 @@ async function sendChat() {
         ], apiKey, { maxTokens: 1000, temperature: 0.7 });
         removeTyping();
         document.getElementById('chatSend').disabled = false;
-        if (!text) { addChatMsg('I apologize, but I was unable to generate a response. Could you please rephrase your question?', 'bot'); return; }
+        if (!text) { addChatMsg(generateLocalChatResponse(msg), 'bot'); return; }
         const formatted = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         addChatMsg(formatted, 'bot');
     } catch (err) {
         removeTyping();
         document.getElementById('chatSend').disabled = false;
-        addChatMsg('Error: ' + err.message, 'bot');
+        addChatMsg(generateLocalChatResponse(msg), 'bot');
     }
+}
+
+function generateLocalChatResponse(question) {
+    const q = question.toLowerCase();
+    const md = window._mapData || {};
+    const cr = window._calcResults || {};
+    const cadEls = (typeof CAD !== 'undefined' && CAD.elements) ? CAD.elements : [];
+    const hasCalc = !!(cr && cr.Q !== undefined);
+    const hasMap = !!(md && md.lat !== undefined);
+    const hasCad = cadEls.length > 0;
+
+    // --- Hydraulic calculation questions ---
+    if (/\b(flow|discharge|q\b|capacity|runoff)\b/.test(q)) {
+        if (hasCalc) {
+            let r = `<strong>Hydraulic Flow Analysis</strong><br><br>`;
+            r += `• Design Flow (Q): <strong>${cr.Q?.toFixed(4)} m³/s</strong><br>`;
+            r += `• Pipe Capacity (Qfull): ${cr.Qfull?.toFixed(4)} m³/s<br>`;
+            r += `• Capacity Utilization: ${((cr.capacityUse||0)*100).toFixed(1)}%<br>`;
+            r += `• Pipe: Ø${cr.pipeDia}mm ${cr.material||''}<br>`;
+            r += `• Slope: ${cr.slopePct}%<br><br>`;
+            if ((cr.capacityUse||0) > 0.9) r += `⚠ Capacity utilization is above 90% — the pipe is near surcharge. Consider upsizing to the next standard diameter.`;
+            else if ((cr.capacityUse||0) > 0.7) r += `Capacity is adequate. The pipe handles the design flow with reasonable margin.`;
+            else r += `The pipe is over-designed for this flow — you could potentially downsize for cost savings.`;
+            return r;
+        }
+        return `To analyze flow and discharge, first run the <strong>Hydraulic Calculator</strong>. It will compute design flow (Q) using the Rational Method: Q = C × i × A / 3600. Once you have results, ask me again and I'll interpret them for you.`;
+    }
+
+    if (/\bvelocit|speed|flow rate|erosion|scour|froude|reynolds|turbulent|laminar|sub-critical|supercritical|hydraulic\b/.test(q)) {
+        if (hasCalc) {
+            let r = `<strong>Flow Regime & Velocity Analysis</strong><br><br>`;
+            r += `• Flow Velocity: <strong>${cr.V?.toFixed(2)} m/s</strong><br>`;
+            r += `• Froude Number: ${cr.Fr?.toFixed(2)} (${cr.Fr < 1 ? 'Sub-critical (stable)' : cr.Fr > 1 ? 'Super-critical (scour risk!)' : 'Critical'})<br>`;
+            r += `• Reynolds Number: ${Math.round(cr.Re||0)} (${(cr.Re||0) > 4000 ? 'Turbulent' : (cr.Re||0) > 2300 ? 'Transitional' : 'Laminar'})<br><br>`;
+            if ((cr.V||0) > 3) r += `⚠ Velocity exceeds 3.0 m/s — there is a significant erosion risk. Consider energy dissipation, slope reduction, or a more abrasion-resistant pipe material like concrete or ductile iron.`;
+            else if ((cr.V||0) > 1.5) r += `Velocity is moderate. Standard PVC or HDPE pipes should perform well at this speed.`;
+            else r += `Velocity is low, which is safe from erosion but may cause sediment deposition. A minimum self-cleansing velocity of 0.6 m/s is recommended.`;
+            return r;
+        }
+        return `Flow velocity is calculated using Manning's equation: V = (1/n) × R^(2/3) × S^(1/2). Run the <strong>Hydraulic Calculator</strong> with your slope, pipe diameter, and Manning's roughness coefficient, then ask me to interpret the results.`;
+    }
+
+    // --- Pipe sizing questions ---
+    if (/\bpipe|diameter|size|sizing|dimension|diam\b/.test(q)) {
+        let r = `<strong>Pipe Sizing Guidance</strong><br><br>`;
+        if (hasCalc) {
+            r += `Current pipe: <strong>Ø${cr.pipeDia}mm ${cr.material||''}</strong><br>`;
+            r += `Capacity utilization: ${((cr.capacityUse||0)*100).toFixed(0)}%<br><br>`;
+            if ((cr.capacityUse||0) > 0.9) {
+                r += `Your pipe is near capacity. Recommended upgrade path:<br>`;
+                r += `• Ø${cr.pipeDia}mm → Ø${nextPipeSize(cr.pipeDia)}mm<br>`;
+                r += `• This will reduce capacity utilization and provide a safety margin.`;
+            } else {
+                r += `Your current pipe size is adequate. Standard diameters (mm): 150, 225, 300, 375, 450, 600, 750, 900.`;
+            }
+        } else {
+            r += `Standard RC pipe diameters (IS 458): 150, 225, 300, 375, 450, 600, 750, 900, 1050, 1200mm.<br><br>`;
+            r += `Sizing approach:<br>`;
+            r += `1. Calculate design flow Q via Rational Method<br>`;
+            r += `2. Choose a slope (min 0.5% for self-cleansing)<br>`;
+            r += `3. Select diameter so Qfull ≥ Q with 20% margin<br>`;
+            r += `4. Verify velocity is between 0.6–3.0 m/s<br><br>`;
+            r += `Run the <strong>Hydraulic Calculator</strong> and I'll recommend a specific size.`;
+        }
+        return r;
+    }
+
+    // --- Slope questions ---
+    if (/\bslope|gradient|grade|invert\b/.test(q)) {
+        let r = `<strong>Slope Design Guidance</strong><br><br>`;
+        r += `• Minimum slope for self-cleansing: <strong>0.5%</strong> (ensures ≥0.6 m/s velocity)<br>`;
+        r += `• Typical road drainage slope: 1–2%<br>`;
+        r += `• Maximum slope before erosion protection needed: 5%<br><br>`;
+        if (hasCalc) {
+            r += `Your current slope: <strong>${cr.slopePct}%</strong><br>`;
+            if ((cr.V||0) > 3) r += `⚠ This slope produces a velocity of ${cr.V?.toFixed(2)} m/s, which exceeds the 3.0 m/s erosion threshold. Reduce the slope or add energy dissipation.`;
+            else r += `Velocity at this slope: ${cr.V?.toFixed(2)} m/s — within acceptable range.`;
+        }
+        return r;
+    }
+
+    // --- Soil / terrain questions ---
+    if (/\bsoil|terrain|ground|earth|clay|sand|silt|permeab|infiltration\b/.test(q)) {
+        let r = `<strong>Soil & Terrain Analysis</strong><br><br>`;
+        if (hasMap) {
+            r += `Location: ${md.address || 'Selected point'}<br>`;
+            r += `Detected soil type: <strong>${md.soil || 'Unknown'}</strong><br>`;
+            r += `Elevation: ${md.elev || 'N/A'} m<br>`;
+            r += `Surface slope: ${md.slope || 'N/A'}%<br>`;
+            r += `Runoff coefficient (C): ${md.soilRunoff || 'N/A'}<br><br>`;
+            const soilMap = {
+                'Clay': 'Clay soils have low permeability (K < 0.001 m/day). Surface drainage is essential — subsurface infiltration will not be effective. Use lined channels and pipe networks.',
+                'Sandy Clay': 'Moderate permeability. Combine surface drains with limited infiltration. Compaction may reduce infiltration over time.',
+                'Loam': 'Good balance of drainage and retention. Infiltration trenches and soakaways can supplement pipe networks.',
+                'Sand': 'High permeability (K > 1 m/day). Infiltration-based systems (soakaways, permeable pavement) are highly effective. Pipe networks may be minimal.',
+                'Silt': 'Silt soils are prone to erosion and piping. Use geotextile filters and gentle slopes to prevent internal erosion of drains.'
+            };
+            if (md.soil && soilMap[md.soil]) r += soilMap[md.soil];
+        } else {
+            r += `Select a location on the <strong>Map Designer</strong> page to get soil and terrain data. I'll then provide a detailed soil-specific drainage strategy.`;
+        }
+        return r;
+    }
+
+    // --- CAD / design questions ---
+    if (/\bcad|design|draw|layout|network|manhole|catch ?pit|junction|outlet\b/.test(q)) {
+        let r = `<strong>CAD Design Analysis</strong><br><br>`;
+        if (hasCad) {
+            const pipes = cadEls.filter(e => e.type === 'pipe');
+            const nodes = cadEls.filter(e => ['manhole','catchpit','outlet','junction'].includes(e.type));
+            const roads = cadEls.filter(e => e.type === 'road');
+            r += `Your design has:<br>`;
+            r += `• ${pipes.length} pipe segments<br>`;
+            r += `• ${nodes.length} nodes (${nodes.filter(n=>n.type==='manhole').length} manholes, ${nodes.filter(n=>n.type==='catchpit').length} catch pits, ${nodes.filter(n=>n.type==='outlet').length} outlets)<br>`;
+            r += `• ${roads.length} road segments<br><br>`;
+            if (pipes.length > 0 && nodes.length > 0) {
+                r += `Design review:<br>`;
+                r += `• Pipe-to-node ratio: ${(pipes.length / nodes.length).toFixed(2)} (ideal: 0.8–1.5)<br>`;
+                if (nodes.filter(n=>n.type==='catchpit').length === 0) r += `⚠ No catch pits detected — add catch pits along roads to capture surface runoff.<br>`;
+                if (nodes.filter(n=>n.type==='outlet').length === 0) r += `⚠ No outlet detected — every network needs a discharge point.<br>`;
+                r += `• Click <strong>View in 3D</strong> to validate pipe depths and slopes visually.`;
+            }
+        } else {
+            r += `Your CAD canvas is empty. To get started:<br>`;
+            r += `1. Set a location on the <strong>Map Designer</strong><br>`;
+            r += `2. Run the <strong>Hydraulic Calculator</strong> for flow data<br>`;
+            r += `3. Click <strong>Auto Design</strong> in the CAD Designer to generate a road + drainage network automatically<br>`;
+            r += `4. Use manual tools (Pipe, Manhole, Catch Pit) to customize`;
+        }
+        return r;
+    }
+
+    // --- 3D viewer questions ---
+    if (/\b3d|three|visual|render|depth|cross.?section\b/.test(q)) {
+        let r = `<strong>3D Visualization Guidance</strong><br><br>`;
+        r += `The 3D Viewer renders your CAD design as a 3D model showing:<br>`;
+        r += `• Pipe networks with depth and slope<br>`;
+        r += `• Water flow animation<br>`;
+        r += `• Terrain surface<br>`;
+        r += `• Cross-sectional views<br><br>`;
+        if (hasCad) r += `You have ${cadEls.length} elements ready to visualize. Click <strong>View in 3D</strong> in the CAD Designer.`;
+        else r += `Create a design in the <strong>CAD Designer</strong> first, then click "View in 3D" to see it rendered.`;
+        return r;
+    }
+
+    // --- Rainfall / climate questions ---
+    if (/\brain|climate|weather|storm|intensity|precipitation\b/.test(q)) {
+        let r = `<strong>Rainfall & Climate Context</strong><br><br>`;
+        if (hasMap) {
+            r += `Location: ${md.address || 'Selected point'}<br>`;
+            r += `Annual rainfall: ${md.rain || 'N/A'} mm/yr<br>`;
+            r += `Temperature: ${md.temp || 'N/A'}°C<br>`;
+            r += `Humidity: ${md.humidity || 'N/A'}%<br>`;
+            r += `Wind speed: ${md.wind || 'N/A'} km/h<br><br>`;
+            r += `For design, convert annual rainfall to intensity using IDF curves. A common approximation for road drainage: i = (annual rainfall / 365) × storm factor (1.5–3.0 for design storms).`;
+        } else {
+            r += `Select a location on the <strong>Map Designer</strong> to retrieve climate data including annual rainfall, temperature, and humidity. I'll then help you derive design rainfall intensity.`;
+        }
+        return r;
+    }
+
+    // --- Material questions ---
+    if (/\bmaterial|pvc|hdpe|concrete|rcp|iron|pipe material\b/.test(q)) {
+        let r = `<strong>Pipe Material Selection</strong><br><br>`;
+        r += `| Material | Manning n | Max Velocity | Best For |<br>`;
+        r += `|----------|-----------|-------------|----------|<br>`;
+        r += `| PVC | 0.009 | 3.0 m/s | Low-cost, low-friction |<br>`;
+        r += `| HDPE | 0.011 | 3.5 m/s | Flexible, unstable soils |<br>`;
+        r += `| Concrete (RCP) | 0.013 | 6.0 m/s | High strength, durability |<br>`;
+        r += `| Ductile Iron | 0.012 | 5.0 m/s | High pressure, abrasion |<br><br>`;
+        if (hasCalc) {
+            r += `Your current material: <strong>${cr.material || 'Not set'}</strong><br>`;
+            if ((cr.V||0) > 3) r += `⚠ Your velocity (${cr.V?.toFixed(2)} m/s) exceeds PVC/HDPE limits. Switch to Concrete or Ductile Iron.`;
+            else r += `Your velocity is within range for all standard materials.`;
+        }
+        return r;
+    }
+
+    // --- Standards / code questions ---
+    if (/\bstandard|code|is 458|irc|aashto|regulation|compliance|guideline\b/.test(q)) {
+        let r = `<strong>Engineering Standards Reference</strong><br><br>`;
+        r += `• <strong>Manning's Equation</strong> — Open-channel and pipe flow: V = (1/n)R^(2/3)S^(1/2)<br>`;
+        r += `• <strong>Rational Method</strong> — Peak discharge: Q = C×i×A/3600<br>`;
+        r += `• <strong>IS 458</strong> — Precast concrete pipes (India): specifies dimensions, strength classes<br>`;
+        r += `• <strong>IRC SP-42</strong> — Road drainage guidelines (India): spacing of catch pits, longitudinal drains<br>`;
+        r += `• <strong>AASHTO</strong> — Culvert hydraulic design: inlet/outlet control, headwater analysis<br><br>`;
+        r += `All calculations in DrainFlow Pro follow these standards. Run the calculator for code-compliant results.`;
+        return r;
+    }
+
+    // --- Greeting / help ---
+    if (/\bhello|hi|hey|help|what can you|who are you\b/.test(q)) {
+        return `<strong>Hello! I'm your DrainFlow Pro AI Engineering Assistant.</strong><br><br>`
+            + `I can help you with:<br>`
+            + `• <strong>Hydraulic analysis</strong> — flow rates, velocity, Froude/Reynolds numbers<br>`
+            + `• <strong>Pipe sizing</strong> — diameter selection, material comparison<br>`
+            + `• <strong>Soil & terrain</strong> — drainage strategy by soil type<br>`
+            + `• <strong>CAD design review</strong> — network analysis, element counts<br>`
+            + `• <strong>3D visualization</strong> — depth and slope validation<br>`
+            + `• <strong>Engineering standards</strong> — IS 458, IRC SP-42, AASHTO<br><br>`
+            + `Ask me a question about your drainage project!`;
+    }
+
+    // --- Default fallback ---
+    let r = `I understand you're asking about: "<em>${escapeHtml(question)}</em>"<br><br>`;
+    r += `I can provide detailed analysis on:<br>`;
+    r += `• Flow, discharge, and capacity<br>`;
+    r += `• Velocity, Froude number, flow regime<br>`;
+    r += `• Pipe sizing and material selection<br>`;
+    r += `• Soil and terrain drainage strategy<br>`;
+    r += `• CAD design review<br>`;
+    r += `• 3D visualization<br>`;
+    r += `• Engineering standards (IS 458, IRC SP-42, AASHTO)<br><br>`;
+    if (hasCalc || hasMap || hasCad) {
+        r += `<strong>Your current session data:</strong><br>`;
+        if (hasMap) r += `• Location: ${md.address || 'Set'} (soil: ${md.soil || 'N/A'})<br>`;
+        if (hasCalc) r += `• Hydraulics: Q=${cr.Q?.toFixed(4)} m³/s, V=${cr.V?.toFixed(2)} m/s, Ø${cr.pipeDia}mm<br>`;
+        if (hasCad) r += `• CAD: ${cadEls.length} elements<br>`;
+        r += `<br>Try asking "What's my flow capacity?" or "Is my pipe size adequate?"`;
+    } else {
+        r += `To get the most out of me, set a location on the <strong>Map Designer</strong> and run the <strong>Hydraulic Calculator</strong> first.`;
+    }
+    return r;
+}
+
+function nextPipeSize(current) {
+    const sizes = [150, 225, 300, 375, 450, 600, 750, 900, 1050, 1200];
+    const idx = sizes.indexOf(current);
+    if (idx === -1 || idx === sizes.length - 1) return Math.round(current * 1.25 / 25) * 25;
+    return sizes[idx + 1];
 }
 
 // ============ INIT ============
